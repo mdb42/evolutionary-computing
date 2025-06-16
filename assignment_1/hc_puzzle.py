@@ -1,7 +1,6 @@
 import random
 import copy
 import matplotlib.pyplot as plt
-import seaborn as sns
 import numpy as np
 
 
@@ -46,14 +45,108 @@ def generate_8_puzzle_instance(moves=20):
 def puzzle_heuristic(state):
     # compute misplaced items
     misplaced = 0
+    for i in range(3):
+        for j in range(3):
+            if state[i][j] != 0 and state[i][j] != goal_state[i][j]:
+                misplaced += 1
     return misplaced
 
 
+def generate_neighbors(state):
+    """Generate all valid neighbor states from the current configuration."""
+    neighbors = []
+    # Find blank tile
+    blank_row, blank_col = None, None
+    for i in range(3):
+        for j in range(3):
+            if state[i][j] == 0:
+                blank_row, blank_col = i, j
+                break
+    
+    # Try moving blank in each direction
+    moves = [(-1, 0), (1, 0), (0, -1), (0, 1)]  # up, down, left, right
+    
+    for dr, dc in moves:
+        new_row = blank_row + dr
+        new_col = blank_col + dc
+        
+        if 0 <= new_row < 3 and 0 <= new_col < 3:
+            new_state = copy.deepcopy(state)
+            new_state[blank_row][blank_col], new_state[new_row][new_col] = \
+                new_state[new_row][new_col], new_state[blank_row][blank_col]
+            neighbors.append(new_state)
+    
+    return neighbors
+
+
 def hill_climbing_puzzle(state):
-    pass
+    """Hill Climbing algorithm to solve the 8-puzzle."""
+    current_state = copy.deepcopy(state)
+    current_cost = puzzle_heuristic(current_state)
+    
+    print(f"Starting Hill Climbing with cost: {current_cost}")
+    visualize_8_puzzle(current_state, current_cost)
+    
+    iteration = 0
+    while current_cost > 0:
+        neighbors = generate_neighbors(current_state)
+        
+        # Find best neighbor
+        best_neighbor = None
+        best_cost = current_cost
+        
+        for neighbor in neighbors:
+            neighbor_cost = puzzle_heuristic(neighbor)
+            if neighbor_cost < best_cost:
+                best_neighbor = neighbor
+                best_cost = neighbor_cost
+        
+        # If no improvement, we're stuck
+        if best_neighbor is None:
+            print(f"Stuck at local minimum after {iteration} iterations with cost {current_cost}")
+            visualize_8_puzzle(current_state, current_cost)
+            return current_state, False
+        
+        # Move to best neighbor
+        current_state = best_neighbor
+        current_cost = best_cost
+        iteration += 1
+        
+        # Visualize progress
+        print(f"Iteration {iteration}: Cost = {current_cost}")
+        visualize_8_puzzle(current_state, current_cost)
+    
+    print(f"Goal reached after {iteration} iterations!")
+    return current_state, True
 
 
 # --- Running and Visualizing 8-Puzzle ---
 initial_puzzle = generate_8_puzzle_instance()
 visualize_8_puzzle(initial_puzzle, 0)
 print(f"Initial 8-Puzzle: {initial_puzzle}")
+
+# Q2: Run with at least 3 different initial states
+if __name__ == "__main__":
+    print("\n=== Q2.1: Testing with 3 different initial states ===")
+    
+    # Test 1
+    print("\nTest 1:")
+    puzzle1 = generate_8_puzzle_instance(moves=10)
+    result1, success1 = hill_climbing_puzzle(puzzle1)
+    
+    # Test 2
+    print("\nTest 2:")
+    puzzle2 = generate_8_puzzle_instance(moves=20)
+    result2, success2 = hill_climbing_puzzle(puzzle2)
+    
+    # Test 3
+    print("\nTest 3:")
+    puzzle3 = generate_8_puzzle_instance(moves=30)
+    result3, success3 = hill_climbing_puzzle(puzzle3)
+    
+    # Q2.2: Demonstrate local minimum
+    print("\n=== Q2.2: Demonstrating Local Minimum ===")
+    # A configuration likely to get stuck
+    stuck_config = [[1, 2, 3], [4, 0, 6], [7, 5, 8]]
+    print("Testing with a problematic configuration:")
+    result_stuck, success_stuck = hill_climbing_puzzle(stuck_config)
