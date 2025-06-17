@@ -50,13 +50,14 @@ def generate_neighbors(board):
     return neighbors
 
 
-def hill_climbing_queens(board):
+def hill_climbing_queens(board, visualize_all=True):
     """Hill Climbing algorithm to solve 8-Queens problem."""
     current_board = board.copy()
     current_cost = queens_heuristic(current_board)
     
-    print(f"Starting Hill Climbing with cost: {current_cost}")
-    visualize_queens(current_board, current_cost)
+    if visualize_all:
+        print(f"Starting Hill Climbing with cost: {current_cost}")
+        visualize_queens(current_board, current_cost)
     
     iteration = 0
     while current_cost > 0:
@@ -74,8 +75,9 @@ def hill_climbing_queens(board):
         
         # If no improvement, we're stuck
         if best_neighbor is None:
-            print(f"Stuck at local minimum after {iteration} iterations with cost {current_cost}")
-            visualize_queens(current_board, current_cost)
+            if visualize_all:
+                print(f"Stuck at local minimum after {iteration} iterations with cost {current_cost}")
+                visualize_queens(current_board, current_cost)
             return current_board, False
         
         # Move to best neighbor
@@ -84,8 +86,9 @@ def hill_climbing_queens(board):
         iteration += 1
         
         # Visualize progress
-        print(f"Iteration {iteration}: Cost = {current_cost}")
-        visualize_queens(current_board, current_cost)
+        if visualize_all:
+            print(f"Iteration {iteration}: Cost = {current_cost}")
+            visualize_queens(current_board, current_cost)
     
     print(f"Solution found after {iteration} iterations!")
     return current_board, True
@@ -108,9 +111,35 @@ if __name__ == "__main__":
         print(f"Initial state: {initial_board}")
         print(f"Initial heuristic value: {initial_cost}")
         
-        final_board, success = hill_climbing_queens(initial_board)
+        # Avoiding too many plots
+        final_board, success = hill_climbing_queens(initial_board, visualize_all=(run == 0))
         final_cost = queens_heuristic(final_board)
         
         print(f"Final state: {final_board}")
         print(f"Final heuristic value: {final_cost}")
         print(f"Success: {'Yes' if success else 'No (Local Minimum)'}")
+    
+    # Solutions do exist with random restarts
+    print("\n=== Random Restarts ===")
+    print("Trying multiple random starts to find a solution...")
+    
+    attempts = 0
+    max_attempts = 100
+    
+    while attempts < max_attempts:
+        attempts += 1
+        initial = generate_8_queens_instance()
+        final, success = hill_climbing_queens(initial, visualize_all=False)
+        
+        if success:
+            print(f"\nFound solution after {attempts} random restarts!")
+            print(f"Solution: {final}")
+            print(f"Cost: {queens_heuristic(final)}")
+            visualize_queens(final, 0)
+            break
+        
+        if attempts % 10 == 0:
+            print(f"Tried {attempts} restarts...")
+    
+    if attempts == max_attempts:
+        print(f"\nNo solution found in {max_attempts} attempts")
