@@ -1,3 +1,12 @@
+"""
+CSC 742 Evolutionary Computing
+Assignment 1 (file 1): Hill Climbing on 8-Puzzle
+Author: Matthew D. Branson
+Date: 2025-01-16
+
+Project Description:
+This implementation demonstrates the Hill Climbing algorithm applied to the classic 8-puzzle problem.
+"""
 import random
 import copy
 import matplotlib.pyplot as plt
@@ -43,7 +52,18 @@ def generate_8_puzzle_instance(moves=20):
 
 
 def puzzle_heuristic(state):
-    # compute misplaced items
+    """
+    Calculate the heuristic value for a given puzzle state.
+    
+    Uses the misplaced tiles heuristic: counts the number of tiles that are not
+    in their goal position, excluding the blank tile (0).
+    
+    Args:
+        state (list[list[int]]): Current puzzle state
+        
+    Returns:
+        int: Number of misplaced tiles (0 indicates goal state reached)
+    """
     misplaced = 0
     for i in range(3):
         for j in range(3):
@@ -53,7 +73,19 @@ def puzzle_heuristic(state):
 
 
 def generate_neighbors(state):
-    """Generate all valid neighbor states from the current configuration."""
+    """
+    Generate all valid neighbor states from the current configuration.
+    
+    A neighbor is created by moving the blank tile in one of the four cardinal
+    directions (up, down, left, right). Only valid moves within the 3x3 grid
+    boundaries are included.
+    
+    Args:
+        state (list[list[int]]): Current puzzle state
+        
+    Returns:
+        list[list[list[int]]]: List of all valid neighbor states
+    """
     neighbors = []
     # Find blank tile
     blank_row, blank_col = None, None
@@ -80,7 +112,21 @@ def generate_neighbors(state):
 
 
 def hill_climbing_puzzle(state):
-    """Hill Climbing algorithm to solve the 8-puzzle."""
+    """
+    Solve the 8-puzzle using the Hill Climbing algorithm.
+    
+    Implements steepest-ascent hill climbing by evaluating all neighbors and
+    selecting the one with the lowest heuristic cost. The algorithm continues
+    until reaching the goal state or getting stuck in a local minimum.
+    
+    Args:
+        state (list[list[int]]): Initial puzzle state
+        
+    Returns:
+        tuple: (final_state, success_flag)
+            - final_state (list[list[int]]): Final puzzle configuration
+            - success_flag (bool): True if goal reached, False if stuck in local minimum
+    """
     current_state = copy.deepcopy(state)
     current_cost = puzzle_heuristic(current_state)
     
@@ -146,7 +192,7 @@ if __name__ == "__main__":
     
     # Q2.2: Demonstrate local minimum
     print("\n=== Q2.2: Demonstrating Local Minimum ===")
-    # A configuration likely to get stuck
+    # A configuration likely to get stuck - maybe? possibly? I hope?
     stuck_config = [[1, 2, 3], [4, 0, 6], [7, 5, 8]]
     print("Testing with a problematic configuration:")
     result_stuck, success_stuck = hill_climbing_puzzle(stuck_config)
