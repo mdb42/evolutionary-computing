@@ -1,0 +1,101 @@
+\documentclass[journal,12pt,onecolumn]{IEEEtran}
+\usepackage{mathtools,amssymb,amsfonts}
+\usepackage{algorithmic}
+\usepackage{algorithm}
+\usepackage{graphicx}
+\usepackage{xcolor}
+\usepackage{float}
+\usepackage{setspace}
+\usepackage{subcaption}
+\usepackage[hidelinks]{hyperref}
+
+% Double spacing
+\doublespacing
+
+\hypersetup{
+   colorlinks=true,
+   linkcolor=blue,
+   citecolor=black,
+   urlcolor=blue
+}
+
+% Improve section spacing
+\usepackage{titlesec}
+\titlespacing*{\section}{0pt}{12pt plus 4pt minus 2pt}{12pt plus 2pt minus 2pt}
+\titlespacing*{\subsection}{0pt}{12pt plus 4pt minus 2pt}{8pt plus 2pt minus 2pt}
+\titlespacing*{\subsubsection}{0pt}{12pt plus 4pt minus 2pt}{6pt plus 2pt minus 2pt}
+
+\title{Genetic Algorithms: Binary Encoding Optimizing De Jong Test Functions}
+\author{
+   \IEEEauthorblockN{Matthew D. Branson} \\
+   \IEEEauthorblockA{\textit{Department of Computer Science} \\
+   \textit{Missouri State University}\\
+   Springfield, MO \\
+   branson773@live.missouristate.edu
+   }
+}
+
+\date{June 24, 2025}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+Here is where I write the abstract.
+\end{abstract}
+
+\begin{IEEEkeywords}
+Genetic Algorithms, Binary Encoding, De Jong Test Functions, Optimization
+\end{IEEEkeywords}
+
+\section{Q1: Binary Encoding and Initialization}
+
+\subsection{Variable Encoding}
+Here is where I describe the variable encoding using binary strings (8-bit and 16-bit)
+
+\subsection{Generating Initial Population}
+Here is where I write about the function to generate a random initial population of binary chromosomes.
+
+\section{Q2: Chromosome Decoding and Function Evaluation}
+
+\subsection{Decoding a Chromosome}
+Here is where I write about decoding a binary chromosome into a real number using linear mapping to the domain of each De Jong function.
+
+\subsection{Function Evaluation}
+Here is where I write about implementing evaluation functions for all of the De Jong functions.
+
+\section{Q3: Genetic Algorithm Operations}
+
+\subsection{Fitness Proportionate Selection}
+Here is where I write about the fitness proportionate selection method using the roulette wheel selection algorithm.
+
+\subsection{Crossover}
+Here is where I write about the one-point or two-point crossover operation for binary chromosomes (probability = 0.90)
+
+\subsection{Bitwise Mutation}
+Here is where I write about the bitwise mutation operation (probability = 1/Length of chromosome)
+
+\section{Q4: Genetic Algorithm Execution}
+
+\subsection{Execution of the Genetic Algorithm}
+Here is where I write about the genetic algorithm execution (50 generations, population size = 20).
+
+\subsection{Fitness Evaluation}
+Here is where I include plots for best fitness and average fitness per generation for each function.
+
+\subsection{Best Solution}
+Here is where I write about the best solution found and its decoded real values.
+
+\section{Q5: Analysis and Comparison}
+
+\subsection{Convergence Comparison}
+Here is where I write about the convergence behavior of all functions.
+
+\subsection{Optimization Analysis}
+Here is where I answer the questions: Which function was easiest to optimize? Which was hardest? Why?
+
+\section{Conclusion}
+Here is where I write the conclusion.
+
+\end{document}
