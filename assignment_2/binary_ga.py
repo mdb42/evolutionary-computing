@@ -5,6 +5,7 @@ Author: Matthew D. Branson
 Date: 2025-06-24
 """
 import random
+import math
 
 
 DEFAULT_POPULATION_SIZE = 50
@@ -14,6 +15,27 @@ DEJONG_CONFIGS = {
     'f2': {'name': 'Weighted Sphere Model', 'n_vars': 2, 'bounds': (-2.048, 2.048)},
     'f3': {'name': 'Step Function', 'n_vars': 4, 'bounds': (-5.12, 5.12)},
     'f4': {'name': 'Noisy Quartic', 'n_vars': 4, 'bounds': (-1.28, 1.28)}
+}
+
+# De Jong Test Function Evaluations
+def f1_sphere(x):
+    return sum(xi**2 for xi in x)
+
+def f2_weighted_sphere(x):
+    return 100 * (x[0]**2 - x[1])**2 + (1 - x[0])**2
+
+def f3_step(x):
+    return sum(math.floor(xi) for xi in x)
+
+def f4_noisy_quartic(x):
+    return sum((i+1) * xi**4 for i, xi in enumerate(x)) + random.random()
+
+# Map function IDs to their evaluation functions
+DEJONG_FUNCTIONS = {
+    'f1': f1_sphere,
+    'f2': f2_weighted_sphere,
+    'f3': f3_step,
+    'f4': f4_noisy_quartic
 }
 
 def log(message):
@@ -61,7 +83,7 @@ def main():
     # Clear log
     open(LOG_PATH, 'w').close()
     
-    log("Binary Encoding and Initialization\n")
+    log("Binary Encoding, Initialization, and Evaluation\n")
     
     # Both 8-bit and 16-bit encoding
     for bits in [8, 16]:
@@ -85,6 +107,10 @@ def main():
             binary_str = ''.join(map(str, chromosome))
             real_vals = ga.decode(chromosome)
             
+            # Get the mapped evaluation function
+            eval_func = DEJONG_FUNCTIONS[fid]
+            fitness = eval_func(real_vals)
+            
             # For 16-bit, truncate binary display for readability
             if bits == 16:
                 display_binary = binary_str[:32] + '...' if len(binary_str) > 32 else binary_str
@@ -92,8 +118,9 @@ def main():
                 display_binary = binary_str
                 
             log(f"  Sample: {display_binary}")
-            log(f"  Decoded: {[f'{x:.4f}' for x in real_vals]}\n")
-    
+            log(f"  Decoded: {[f'{x:.4f}' for x in real_vals]}")
+            log(f"  f({fid}) = {fitness:.6f}\n")
+
     log(f"Population size: {DEFAULT_POPULATION_SIZE}")
 
 
