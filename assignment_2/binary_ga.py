@@ -1,8 +1,11 @@
 """
 CSC 742 Evolutionary Computing
-Assignment 2: Genetic Algorithms with Binary Encoding for De Jong Test Functions
-Author: Matthew D. Branson
+Assignment 2: Genetic Algorithms
+Author: Matthew Branson
 Date: 2025-06-24
+
+Project Description:
+This module implements a binary-encoded genetic algorithm to optimize four De Jong test functions.
 """
 import random
 import math
@@ -25,15 +28,50 @@ DEJONG_CONFIGS = {
 
 # De Jong Test Function Evaluations
 def f1_sphere(x):
+    """
+    Evaluate the Sphere Model function.
+
+    Args:
+        x (list): Real-valued coordinates
+        
+    Returns:
+        float: Function value at x
+    """
     return sum(xi**2 for xi in x)
 
 def f2_weighted_sphere(x):
+    """
+    Evaluate the Weighted Sphere Model function.
+    
+    Args:
+        x (list): Real-valued coordinates
+    Returns:
+        float: Function value at x
+    """
     return 100 * (x[0]**2 - x[1])**2 + (1 - x[0])**2
 
 def f3_step(x):
+    """
+    Evaluate the Step Function.
+    
+    Args:
+        x (list): Real-valued coordinates
+
+    Returns:
+        float: Function value at x
+    """
     return sum(math.floor(xi) for xi in x)
 
 def f4_noisy_quartic(x):
+    """
+    Evaluate the Noisy Quartic function.
+
+    Args:
+        x (list): Real-valued coordinates
+
+    Returns:
+        float: Function value at x
+    """
     return sum((i+1) * xi**4 for i, xi in enumerate(x)) + random.random()
 
 # Map function IDs to their evaluation functions
@@ -45,12 +83,35 @@ DEJONG_FUNCTIONS = {
 }
 
 def log(message):
+    """Log messages to console and file.
+    
+    Args:
+        message (str): Message to log
+    """
     print(message)
     with open(LOG_PATH, 'a') as f:
         f.write(message + '\n')
 
 class BinaryGA:
+    """
+    Binary Genetic Algorithm for optimizing De Jong test functions.
+    
+    Attributes:
+        function_id (str): ID of the De Jong function to optimize
+        bits_per_variable (int): Number of bits per variable in the chromosome
+        n_vars (int): Number of variables in the function
+        bounds (tuple): Bounds for the function variables
+        chromosome_length (int): Total length of the binary chromosome
+        precision (float): Precision of the real-valued representation
+    """
     def __init__(self, function_id, bits_per_variable):
+        """
+        Initialize the BinaryGA with the specified function ID and bits per variable.
+        
+        Args:
+            function_id (str): ID of the De Jong function to optimize
+            bits_per_variable (int): Number of bits to represent each variable
+        """
         config = DEJONG_CONFIGS[function_id]
         self.function_id = function_id
         self.n_vars = config['n_vars']
@@ -63,10 +124,28 @@ class BinaryGA:
         self.precision = (upper - lower) / (2**bits_per_variable - 1)
     
     def generate_population(self, size=DEFAULT_POPULATION_SIZE):
+        """
+        Generate an initial population of random binary chromosomes.
+
+        Args:
+            size (int): Number of chromosomes to generate
+
+        Returns:
+            list: List of binary chromosomes, each represented as a list of bits
+        """
         return [[random.randint(0, 1) for _ in range(self.chromosome_length)] 
                 for _ in range(size)]
     
     def decode(self, chromosome):
+        """
+        Decode a binary chromosome into real-valued variables.
+        
+        Args:
+            chromosome (list): Binary chromosome to decode
+
+        Returns:
+            list: List of real-valued variables decoded from the chromosome
+        """
         real_values = []
         for i in range(self.n_vars):
             # Extract bits for this variable
@@ -85,6 +164,16 @@ class BinaryGA:
         return real_values
     
     def fitness_proportionate_selection(self, population, fitness_values):
+        """
+        Perform fitness proportionate selection (roulette wheel selection) on the population.
+
+        Args:
+            population (list): Current population of chromosomes
+            fitness_values (list): Fitness values corresponding to the population
+
+        Returns:
+            list: Selected parent chromosome for reproduction
+        """
         # Shift fitness values to ensure all are positive
         # Necessary since the step function can yield negative fitness
         min_fitness = min(fitness_values)
@@ -112,6 +201,16 @@ class BinaryGA:
         return population[-1].copy()
     
     def two_point_crossover(self, parent1, parent2):
+        """
+        Perform two-point crossover between two parent chromosomes.
+
+        Args:
+            parent1 (list): First parent chromosome
+            parent2 (list): Second parent chromosome
+        
+        Returns:
+            tuple: Offspring chromosomes resulting from crossover
+        """
         if random.random() < CROSSOVER_PROBABILITY:
             point1 = random.randint(1, self.chromosome_length - 2)
             point2 = random.randint(point1 + 1, self.chromosome_length - 1)
@@ -125,6 +224,14 @@ class BinaryGA:
             return parent1.copy(), parent2.copy()
     
     def bitwise_mutation(self, chromosome):
+        """
+        Perform bitwise mutation on a binary chromosome.
+
+        Args:
+            chromosome (list): Binary chromosome to mutate
+        Returns:
+            list: Mutated chromosome
+        """
         mutation_probability = 1.0 / self.chromosome_length
         
         for i in range(self.chromosome_length):
@@ -135,6 +242,16 @@ class BinaryGA:
         return chromosome
     
     def run(self, generations=MAX_GENERATIONS, pop_size=DEFAULT_POPULATION_SIZE):
+        """
+        Run the genetic algorithm for a specified number of generations.
+
+        Args:
+            generations (int): Number of generations to evolve
+            pop_size (int): Size of the population
+        
+        Returns:
+            tuple: Best overall chromosome, its fitness, best fitness history, average fitness history
+        """
         # Initialize
         population = self.generate_population(size=pop_size)
         eval_func = DEJONG_FUNCTIONS[self.function_id]
@@ -188,7 +305,16 @@ class BinaryGA:
 
 
 def create_plot(fid, config, bits, best_fit, best_hist, avg_hist):
-    """Create and save fitness plot for a given function and encoding"""
+    """Create and save fitness plot for a given function and encoding
+    
+    Args:
+        fid (str): Function ID
+        config (dict): Configuration for the function
+        bits (int): Number of bits per variable
+        best_fit (float): Best fitness found
+        best_hist (list): History of best fitness values
+        avg_hist (list): History of average fitness values
+    """
     plt.figure(figsize=(10, 6))
     generations = range(len(best_hist))
     
@@ -210,6 +336,9 @@ def create_plot(fid, config, bits, best_fit, best_hist, avg_hist):
 
 
 def main():
+    """
+    Main function to run the genetic algorithm and log results.
+    """
     # Clear log
     open(LOG_PATH, 'w').close()
     
@@ -253,5 +382,5 @@ def main():
 
 
 if __name__ == "__main__":
-    # random.seed(773)
+    # random.seed(773) # Uncomment for reproducibility
     main()
