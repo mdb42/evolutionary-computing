@@ -6,11 +6,16 @@ Date: 2025-06-24
 """
 import random
 import math
+import os
+import matplotlib.pyplot as plt
 
 
-DEFAULT_POPULATION_SIZE = 50
+DEFAULT_POPULATION_SIZE = 20
+MAX_GENERATIONS = 50
 CROSSOVER_PROBABILITY = 0.90
 LOG_PATH = "ga_output.log"
+IMAGES_PATH = "ga_images"
+
 DEJONG_CONFIGS = {
     'f1': {'name': 'Sphere Model', 'n_vars': 3, 'bounds': (-5.12, 5.12)},
     'f2': {'name': 'Weighted Sphere Model', 'n_vars': 2, 'bounds': (-2.048, 2.048)},
@@ -80,8 +85,17 @@ class BinaryGA:
         return real_values
     
     def fitness_proportionate_selection(self, population, fitness_values):
-        # Add small constant to avoid division by zero
-        transformed_fitness = [1.0 / (f + 1.0) for f in fitness_values]
+        # Shift fitness values to ensure all are positive
+        # Necessary since the step function can yield negative fitness
+        min_fitness = min(fitness_values)
+
+        if min_fitness < 0:
+            shifted_fitness = [f - min_fitness + 1.0 for f in fitness_values]
+        else:
+            shifted_fitness = fitness_values
+        
+        # Transform for minimization
+        transformed_fitness = [1.0 / (f + 1.0) for f in shifted_fitness]
         total_fitness = sum(transformed_fitness)
         probabilities = [f / total_fitness for f in transformed_fitness]
         
@@ -119,12 +133,95 @@ class BinaryGA:
                 chromosome[i] = 1 - chromosome[i]
         
         return chromosome
+    
+    def run(self, generations=MAX_GENERATIONS, pop_size=DEFAULT_POPULATION_SIZE):
+        # Initialize
+        population = self.generate_population(size=pop_size)
+        eval_func = DEJONG_FUNCTIONS[self.function_id]
+        
+        # Track statistics
+        best_fitness_history = []
+        avg_fitness_history = []
+        best_overall = None
+        best_overall_fitness = float('inf')
+        
+        # Evolution loop
+        for gen in range(generations):
+            # Evaluate current population
+            fitness_values = []
+            for chrom in population:
+                decoded = self.decode(chrom)
+                fitness = eval_func(decoded)
+                fitness_values.append(fitness)
+                
+                # Track best overall
+                if fitness < best_overall_fitness:
+                    best_overall_fitness = fitness
+                    best_overall = chrom.copy()
+            
+            # Record statistics
+            best_gen_fitness = min(fitness_values)
+            avg_gen_fitness = sum(fitness_values) / len(fitness_values)
+            best_fitness_history.append(best_gen_fitness)
+            avg_fitness_history.append(avg_gen_fitness)
+            
+            # Create next generation
+            new_population = []
+            while len(new_population) < pop_size:
+                # Selection
+                parent1 = self.fitness_proportionate_selection(population, fitness_values)
+                parent2 = self.fitness_proportionate_selection(population, fitness_values)
+                
+                # Crossover
+                child1, child2 = self.two_point_crossover(parent1, parent2)
+                
+                # Mutation
+                child1 = self.bitwise_mutation(child1)
+                child2 = self.bitwise_mutation(child2)
+                
+                new_population.extend([child1, child2])
+            
+            # Ensure exact population size
+            population = new_population[:pop_size]
+        
+        return best_overall, best_overall_fitness, best_fitness_history, avg_fitness_history
+
+
+def create_plot(fid, config, bits, best_fit, best_hist, avg_hist):
+    """Create and save fitness plot for a given function and encoding"""
+    plt.figure(figsize=(10, 6))
+    generations = range(len(best_hist))
+    
+    plt.plot(generations, best_hist, 'b-', label='Best Fitness', linewidth=2)
+    plt.plot(generations, avg_hist, 'r--', label='Average Fitness', linewidth=2)
+    
+    plt.xlabel('Generation')
+    plt.ylabel('Fitness')
+    plt.title(f'{config["name"]} - {bits}-bit Encoding\nBest Fitness: {best_fit:.6f}')
+    plt.legend()
+    plt.grid(True, alpha=0.3)
+    
+    # Save plot
+    filename = f"{IMAGES_PATH}/{fid}_{bits}bit_fitness.png"
+    plt.savefig(filename, dpi=150, bbox_inches='tight')
+    plt.close()
+    
+    log(f"Plot saved: {filename}")
+
 
 def main():
     # Clear log
     open(LOG_PATH, 'w').close()
     
-    log("Binary Encoding, Initialization, and Evaluation\n")
+    # Create images directory if it doesn't exist
+    if not os.path.exists(IMAGES_PATH):
+        os.makedirs(IMAGES_PATH)
+    
+    log("Q4: GA Execution Results\n")
+    log(f"Population Size: {DEFAULT_POPULATION_SIZE}")
+    log(f"Generations: {MAX_GENERATIONS}")
+    log(f"Crossover Probability: {CROSSOVER_PROBABILITY}")
+    log("Mutation Probability: 1/chromosome_length\n")
     
     # Both 8-bit and 16-bit encoding
     for bits in [8, 16]:
@@ -137,74 +234,24 @@ def main():
             ga = BinaryGA(fid, bits_per_variable=bits)
             config = DEJONG_CONFIGS[fid]
             
-            log(f"{fid}: {config['name']} ({config['n_vars']} vars, bounds {config['bounds']})")
-            log(f"  Precision: {ga.precision:.6f}")
+            log(f"\n{fid}: {config['name']}")
+            log("-" * 30)
             
-            # Generate small sample population
-            pop = ga.generate_population(size=20)
+            # Game faces, everyone! Time to evolve!
+            best_chrom, best_fit, best_hist, avg_hist = ga.run()
             
-            # Show first individual
-            chromosome = pop[0]
-            binary_str = ''.join(map(str, chromosome))
-            real_vals = ga.decode(chromosome)
+            # Decode and log best solution
+            best_decoded = ga.decode(best_chrom)
+            log(f"Best Fitness: {best_fit:.6f}")
+            log(f"Best Solution (decoded): {[f'{x:.4f}' for x in best_decoded]}")
             
-            # Get the mapped evaluation function
-            eval_func = DEJONG_FUNCTIONS[fid]
-            fitness = eval_func(real_vals)
-            
-            # For 16-bit, truncate binary display for readability
-            if bits == 16:
-                display_binary = binary_str[:32] + '...' if len(binary_str) > 32 else binary_str
-            else:
-                display_binary = binary_str
-                
-            log(f"  Sample: {display_binary}")
-            log(f"  Decoded: {[f'{x:.4f}' for x in real_vals]}")
-            log(f"  f({fid}) = {fitness:.6f}\n")
+            # Create plot
+            create_plot(fid, config, bits, best_fit, best_hist, avg_hist)
     
-    # Testing out the GA Operations
-    log("\n" + "="*50)
-    log("Q3: GA Operations Demo (using 8-bit f1)")
-    log("="*50 + "\n")
-    
-    ga = BinaryGA('f1', bits_per_variable=8)
-    eval_func = DEJONG_FUNCTIONS['f1']
-    
-    pop = ga.generate_population(size=20)
-    fitness_values = [eval_func(ga.decode(chrom)) for chrom in pop]
-    
-    #Initialization
-    log("Initial Population:")
-    for i, (chrom, fit) in enumerate(zip(pop, fitness_values)):
-        log(f"  {i+1}: {''.join(map(str, chrom))} fitness={fit:.4f}")
-    
-    # Selection
-    log("\nRoulette Wheel Selection:")
-    selected = ga.fitness_proportionate_selection(pop, fitness_values)
-    log(f"  Selected: {''.join(map(str, selected))}")
-    
-    # Crossover
-    parent1 = pop[0]
-    parent2 = pop[1]
-    log(f"\nTwo-point Crossover (p={CROSSOVER_PROBABILITY}):")
-    log(f"  Parent 1: {''.join(map(str, parent1))}")
-    log(f"  Parent 2: {''.join(map(str, parent2))}")
-    child1, child2 = ga.two_point_crossover(parent1.copy(), parent2.copy())
-    log(f"  Child 1:  {''.join(map(str, child1))}")
-    log(f"  Child 2:  {''.join(map(str, child2))}")
-    
-    # Mutation
-    log(f"\nMutation (p=1/{ga.chromosome_length}):")
-    original = pop[0].copy()
-    mutated = ga.bitwise_mutation(original.copy())
-    log(f"  Original: {''.join(map(str, original))}")
-    log(f"  Mutated:  {''.join(map(str, mutated))}")
-
-    log(f"\nPopulation size: {DEFAULT_POPULATION_SIZE}")
-    log(f"Crossover probability: {CROSSOVER_PROBABILITY}")
-    log(f"Mutation probability: 1/chromosome_length")
+    log(f"\nAll results saved to {LOG_PATH}")
+    log(f"All plots saved to {IMAGES_PATH}/")
 
 
 if __name__ == "__main__":
-    # random.seed(42)
+    # random.seed(773)
     main()
