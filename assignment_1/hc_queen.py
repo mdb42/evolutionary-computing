@@ -2,7 +2,7 @@
 CSC 742 Evolutionary Computing
 Assignment 1 (file 2): Hill Climbing on 8-Queens
 Author: Matthew D. Branson
-Date: 2025-01-16
+Date: 2025-06-16
 
 Project Description:
 This implementation demonstrates the Hill Climbing algorithm applied to the classic 8-Queens problem.
