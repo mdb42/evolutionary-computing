@@ -5,7 +5,6 @@ __pycache__/
 venv/
 .vscode/
 .obsidian
-guidance.md
 *.aux
 *.bbl
 *.blg
@@ -17,4 +16,3 @@ guidance.md
 notes/
 assignment_1/report/*
 assignment_1/images/*
-assignment_2/ga_project.md

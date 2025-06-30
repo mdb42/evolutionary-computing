@@ -1,0 +1,135 @@
+\documentclass[journal,12pt,onecolumn]{IEEEtran}
+\usepackage{mathtools,amssymb,amsfonts}
+\usepackage{algorithmic}
+\usepackage{algorithm}
+\usepackage{graphicx}
+\usepackage{xcolor}
+\usepackage{float}
+\usepackage{setspace}
+\usepackage{subcaption}
+\usepackage[hidelinks]{hyperref}
+\usepackage{multirow}
+
+\doublespacing
+
+\hypersetup{
+   colorlinks=true,
+   linkcolor=blue,
+   citecolor=black,
+   urlcolor=blue
+}
+
+\usepackage{titlesec}
+\titlespacing*{\section}{0pt}{12pt plus 4pt minus 2pt}{12pt plus 2pt minus 2pt}
+\titlespacing*{\subsection}{0pt}{12pt plus 4pt minus 2pt}{8pt plus 2pt minus 2pt}
+\titlespacing*{\subsubsection}{0pt}{12pt plus 4pt minus 2pt}{6pt plus 2pt minus 2pt}
+
+\title{Genetic Algorithm: Bin Packing Problem}
+\author{
+   \IEEEauthorblockN{Matthew D. Branson} \\
+   \IEEEauthorblockA{\textit{Department of Computer Science} \\
+   \textit{Missouri State University}\\
+   Springfield, MO \\
+   branson773@live.missouristate.edu
+   }
+}
+
+\date{June 24, 2025}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+This paper presents the implementation and analysis of a...
+\end{abstract}
+
+\begin{IEEEkeywords}
+Genetic Algorithms, Bin Packing Problem, Optimization, Heuristic Search
+\end{IEEEkeywords}
+
+\section{Q1: Encoding and Initialization}
+
+Each solution (individual) is represented by a list of integers indicating bin assignments. For example: \texttt{[0, 1, 0, 2, 1, 1, 2, 1, 3, 0]}.
+
+\begin{itemize}
+    \item This means that 10 orders are assigned to bins 0 through 3. (Orders can be 10, 25, 50, and 100).
+    \item You can assume the maximum number of boxes (bins) equals the number of items.
+    \item Implement a function to generate a random initial population of such individuals.
+\end{itemize}
+
+\section{Q2: Function Evaluation}
+
+\subsection{Objective Function}
+
+Implement a function to evaluate the objective function $f$, defined as the number of unique bins used (i.e., the goal is to minimize $f$).
+
+\subsection{Constraint Handling}
+
+Also compute the constraint violation $g$, defined as the number of bins whose total weight exceeds 10 kg.
+
+Examples:
+\begin{itemize}
+    \item If no bin exceeds the limit, $g = 0$ (feasible).
+    \item If one bin exceeds the limit, $g = 1$.
+    \item If all bins exceed the limit, $g = N$ (worst case).
+\end{itemize}
+
+\subsection{Evaluation Function}
+
+Each individual will thus be evaluated using both $f$ and $g$.
+
+\section{Q3: GA Operations}
+
+\subsection{Tournament Selection}
+
+\begin{itemize}
+    \item For each selection, choose two individuals at random and determine a winner.
+    \item Repeat until the mating pool has $N$ individuals.
+    \item Then select pairs from the mating pool for crossover.
+\end{itemize}
+
+\subsection{Winner Selection Rules}
+
+\begin{itemize}
+    \item If both individuals are feasible ($g_1 = 0$, $g_2 = 0$), the one with lower $f$ wins.
+    \item If one individual is feasible and the other is not, the feasible one wins.
+    \item If both are infeasible, the individual with the lower $g$ wins.
+\end{itemize}
+
+\subsection{Crossover}
+
+Implement one-point or two-point crossover between two selected parents.
+
+\subsection{Mutation}
+
+For each gene in the chromosome, mutate it with a probability $p_m = \frac{1}{\text{number of boxes}}$.
+
+\begin{itemize}
+    \item Mutation means reassigning the gene to a new random bin (0 to $N-1$).
+    \item Ensure that genes only hold integer values.
+\end{itemize}
+
+\section{Q4: GA Execution}
+
+\begin{itemize}
+    \item Run the GA for 50 generations with a population size of 20 considering 10, 25, 50, and 100 orders separately.
+    \item Vary the number of population size and max generation to see the effect on performance.
+    \item Plot the best and average fitness (i.e., number of bins used) per generation.
+    \item Report the best solution found and its bin-wise packing configuration.
+\end{itemize}
+
+\section{Q5: Analysis and Comparison}
+
+\subsection{Convergence Analysis}
+
+Compare the convergence behavior of different runs (e.g., different random seeds or order sizes).
+
+\subsection{Performance Comparison}
+
+Discuss whether the algorithm tends to find feasible solutions early or late in the process.
+
+\section{Conclusion}
+This study successfully implemented...
+
+\end{document}
