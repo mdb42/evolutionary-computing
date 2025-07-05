@@ -2,6 +2,13 @@ from base_ga import GeneticAlgorithm
 import random
 import math
 import matplotlib.pyplot as plt
+import os
+
+
+def log(message, log_path="ga_output.log"):
+    print(message)
+    with open(log_path, 'a') as f:
+        f.write(message + '\n')
 
 
 DEJONG_CONFIGS = {
@@ -83,7 +90,15 @@ class BinaryGA(GeneticAlgorithm):
     def is_better(self, fitness1, fitness2):
         return fitness1 < fitness2
     
-    def select(self, population, fitness_values):
+    def select_parents(self, population, fitness_values, n_parents):
+        # Select n_parents
+        parents = []
+        for _ in range(n_parents):
+            parent = self.fitness_proportionate_select_one(population, fitness_values)
+            parents.append(parent)
+        return parents
+    
+    def fitness_proportionate_select_one(self, population, fitness_values):
         # Shift fitness values to ensure all are positive
         min_fitness = min(fitness_values)
         
@@ -109,15 +124,16 @@ class BinaryGA(GeneticAlgorithm):
         # Fallback
         return population[-1].copy()
     
-    def crossover(self, parent1, parent2):
+    def crossover(self, parents):
         # Two-point crossover
+        parent1, parent2 = parents[0], parents[1]
         point1 = random.randint(1, self.chromosome_length - 2)
         point2 = random.randint(point1 + 1, self.chromosome_length - 1)
         
         offspring1 = parent1[:point1] + parent2[point1:point2] + parent1[point2:]
         offspring2 = parent2[:point1] + parent1[point1:point2] + parent2[point2:]
         
-        return offspring1, offspring2
+        return [offspring1, offspring2]
     
     def mutate(self, individual):
         # Bitwise mutation
@@ -137,45 +153,49 @@ class BinaryGA(GeneticAlgorithm):
 
 
 def main():
-    ga = BinaryGA('f1', 8)
-    ga.initialize_logging()
+    log_path = "ga_output.log"
+    images_path = "ga_images"
     
-    ga.log("Q4: GA Execution Results\n")
-    ga.log(f"Population Size: {ga.pop_size}")
-    ga.log(f"Generations: {ga.max_generations}")
-    ga.log(f"Crossover Probability: {ga.crossover_prob}")
-    ga.log("Mutation Probability: 1/chromosome_length\n")
+    open(log_path, 'w').close()
+    if not os.path.exists(images_path):
+        os.makedirs(images_path)
+    
+    log("Q4: GA Execution Results\n", log_path)
+    log("Population Size: 20", log_path)
+    log("Generations: 50", log_path)
+    log("Crossover Probability: 0.9", log_path)
+    log("Mutation Probability: 1/chromosome_length\n", log_path)
     
     # Test both 8-bit and 16-bit encoding
     for bits in [8, 16]:
-        ga.log(f"\n{'='*50}")
-        ga.log(f"{bits}-BIT ENCODING")
-        ga.log('='*50 + '\n')
+        log(f"\n{'='*50}", log_path)
+        log(f"{bits}-BIT ENCODING", log_path)
+        log('='*50 + '\n', log_path)
         
         # Test each De Jong function
         for fid in ['f1', 'f2', 'f3', 'f4']:
-            ga = BinaryGA(fid, bits_per_variable=bits)
+            ga = BinaryGA(fid, bits_per_variable=bits, elitism_count=2)
             
-            ga.log(f"\n{fid}: {ga.function_name}")
-            ga.log("-" * 30)
+            log(f"\n{fid}: {ga.function_name}", log_path)
+            log("-" * 30, log_path)
             
             # Run GA
             best_chrom, best_fit = ga.run()
             
             # Get decoded solution
             best_decoded, _ = ga.get_best_solution_info()
-            ga.log(f"Best Fitness: {best_fit:.6f}")
-            ga.log(f"Best Solution (decoded): {[f'{x:.4f}' for x in best_decoded]}")
+            log(f"Best Fitness: {best_fit:.6f}", log_path)
+            log(f"Best Solution (decoded): {[f'{x:.4f}' for x in best_decoded]}", log_path)
             
             # Create and save plot
             fig = ga.plot_fitness(title=f'{ga.function_name} - {bits}-bit Encoding')
-            filename = f"{ga.images_path}/{fid}_{bits}bit_fitness.png"
+            filename = f"{images_path}/{fid}_{bits}bit_fitness.png"
             fig.savefig(filename, dpi=150, bbox_inches='tight')
             plt.close(fig)
-            ga.log(f"Plot saved: {filename}")
+            log(f"Plot saved: {filename}", log_path)
     
-    ga.log(f"\nAll results saved to {ga.log_path}")
-    ga.log(f"All plots saved to {ga.images_path}/")
+    log(f"\nAll results saved to {log_path}", log_path)
+    log(f"All plots saved to {images_path}/", log_path)
 
 
 if __name__ == "__main__":

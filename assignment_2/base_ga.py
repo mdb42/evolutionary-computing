@@ -1,16 +1,15 @@
 from abc import ABC, abstractmethod
 import random
 import matplotlib.pyplot as plt
-import os
 
 
 class GeneticAlgorithm(ABC):
-    def __init__(self, pop_size=20, max_generations=50, crossover_prob=0.9, log_path=None, images_path=None):
+    def __init__(self, pop_size=20, max_generations=50, crossover_prob=0.9, 
+                 elitism_count=0):
         self.pop_size = pop_size
         self.max_generations = max_generations
         self.crossover_prob = crossover_prob
-        self.log_path = log_path or "ga_output.log"
-        self.images_path = images_path or "ga_images"
+        self.elitism_count = elitism_count
         self.best_fitness_history = []
         self.avg_fitness_history = []
         self.best_overall = None
@@ -25,7 +24,11 @@ class GeneticAlgorithm(ABC):
         pass
     
     @abstractmethod
-    def crossover(self, parent1, parent2):
+    def select_parents(self, population, fitness_values, n_parents):
+        pass
+    
+    @abstractmethod
+    def crossover(self, parents):
         pass
     
     @abstractmethod
@@ -33,31 +36,51 @@ class GeneticAlgorithm(ABC):
         pass
     
     @abstractmethod
-    def select(self, population, fitness_values):
-        pass
-    
-    @abstractmethod
     def is_better(self, fitness1, fitness2):
-        # minimization: fitness1 < fitness2
-        # maximization: fitness1 > fitness2
         pass
-    
-    def decode(self, individual):
-        # Only needed for encoded representations
-        return individual
-   
+
     def generate_population(self):
         return [self.generate_individual() for _ in range(self.pop_size)]
     
-    def log(self, message):
-        print(message)
-        with open(self.log_path, 'a') as f:
-            f.write(message + '\n')
+    def evolve_generation(self, population, fitness_values):
+        new_population = []
+        
+        # Elitism
+        if self.elitism_count > 0:
+            elite_indices = self.get_elite_indices(fitness_values, self.elitism_count)
+            for idx in elite_indices:
+                new_population.append(self.copy_individual(population[idx]))
+        
+        # Fill rest of population
+        while len(new_population) < self.pop_size:
+            # Select parents (default: 2, but overridable)
+            parents = self.select_parents(population, fitness_values, 2)
+            
+            # Crossover
+            if random.random() < self.crossover_prob:
+                offspring = self.crossover(parents)
+            else:
+                offspring = [self.copy_individual(p) for p in parents]
+            
+            # Mutation
+            offspring = [self.mutate(child) for child in offspring]
+            
+            new_population.extend(offspring)
+        
+        # Ensure exact population size
+        return new_population[:self.pop_size]
     
-    def initialize_logging(self):
-        open(self.log_path, 'w').close()
-        if not os.path.exists(self.images_path):
-            os.makedirs(self.images_path)
+    def get_elite_indices(self, fitness_values, n_elite):
+        indexed_fitness = list(enumerate(fitness_values))
+        indexed_fitness.sort(key=lambda x: x[1], reverse=False)
+        
+        # Sort
+        for i in range(len(indexed_fitness)):
+            for j in range(i + 1, len(indexed_fitness)):
+                if self.is_better(indexed_fitness[j][1], indexed_fitness[i][1]):
+                    indexed_fitness[i], indexed_fitness[j] = indexed_fitness[j], indexed_fitness[i]
+        
+        return [idx for idx, _ in indexed_fitness[:n_elite]]
     
     def run(self):
         # Initialize
@@ -81,39 +104,18 @@ class GeneticAlgorithm(ABC):
                     self.best_overall = self.copy_individual(individual)
             
             # Record statistics
-            best_gen_fitness = self.get_best_fitness(fitness_values)
-            best_scalar = self.get_fitness_for_stats(best_gen_fitness)
-            avg_scalar = sum(self.get_fitness_for_stats(f) for f in fitness_values) / len(fitness_values)
-            self.best_fitness_history.append(best_scalar)
-            self.avg_fitness_history.append(avg_scalar)
-            
-            # Log progress
-            if gen % 10 == 0 or gen == self.max_generations - 1:
-                self.log(f"Generation {gen}: Best = {best_scalar:.6f}, Avg = {avg_scalar:.6f}")
+            self.record_statistics(fitness_values, gen)
             
             # Create next generation
-            new_population = []
-            while len(new_population) < self.pop_size:
-                # Selection
-                parent1 = self.select(population, fitness_values)
-                parent2 = self.select(population, fitness_values)
-                
-                # Crossover
-                if random.random() < self.crossover_prob:
-                    child1, child2 = self.crossover(parent1, parent2)
-                else:
-                    child1, child2 = self.copy_individual(parent1), self.copy_individual(parent2)
-                
-                # Mutation
-                child1 = self.mutate(child1)
-                child2 = self.mutate(child2)
-                
-                new_population.extend([child1, child2])
-            
-            # Ensure exact population size
-            population = new_population[:self.pop_size]
+            population = self.evolve_generation(population, fitness_values)
         
         return self.best_overall, self.best_overall_fitness
+    
+    def record_statistics(self, fitness_values, generation):
+        best_gen_fitness = self.get_best_fitness(fitness_values)
+        avg_gen_fitness = sum(fitness_values) / len(fitness_values)
+        self.best_fitness_history.append(best_gen_fitness)
+        self.avg_fitness_history.append(avg_gen_fitness)
     
     def get_best_fitness(self, fitness_values):
         best = fitness_values[0]
@@ -122,17 +124,12 @@ class GeneticAlgorithm(ABC):
                 best = f
         return best
     
-    def get_fitness_for_stats(self, fitness):
-        # Override if fitness is a tuple
-        if isinstance(fitness, tuple):
-            return fitness[0]  # Default to use first element for stats
-        return fitness
-    
     def copy_individual(self, individual):
         if isinstance(individual, list):
             return individual.copy()
         else:
             return individual
+    
     
     def plot_fitness(self, title="GA Fitness Progress"):
         plt.figure(figsize=(10, 6))
@@ -143,7 +140,7 @@ class GeneticAlgorithm(ABC):
         
         plt.xlabel('Generation')
         plt.ylabel('Fitness')
-        plt.title(f'{title}\nBest Fitness: {self.get_fitness_for_stats(self.best_overall_fitness):.6f}')
+        plt.title(title)
         plt.legend()
         plt.grid(True, alpha=0.3)
         
