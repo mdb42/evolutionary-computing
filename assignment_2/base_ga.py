@@ -42,6 +42,10 @@ class GeneticAlgorithm(ABC):
         # maximization: fitness1 > fitness2
         pass
     
+    def decode(self, individual):
+        # Only needed for encoded representations
+        return individual
+   
     def generate_population(self):
         return [self.generate_individual() for _ in range(self.pop_size)]
     
@@ -78,13 +82,14 @@ class GeneticAlgorithm(ABC):
             
             # Record statistics
             best_gen_fitness = self.get_best_fitness(fitness_values)
-            avg_gen_fitness = sum(fitness_values) / len(fitness_values)
-            self.best_fitness_history.append(best_gen_fitness)
-            self.avg_fitness_history.append(avg_gen_fitness)
+            best_scalar = self.get_fitness_for_stats(best_gen_fitness)
+            avg_scalar = sum(self.get_fitness_for_stats(f) for f in fitness_values) / len(fitness_values)
+            self.best_fitness_history.append(best_scalar)
+            self.avg_fitness_history.append(avg_scalar)
             
             # Log progress
             if gen % 10 == 0 or gen == self.max_generations - 1:
-                self.log(f"Generation {gen}: Best = {best_gen_fitness:.6f}, Avg = {avg_gen_fitness:.6f}")
+                self.log(f"Generation {gen}: Best = {best_scalar:.6f}, Avg = {avg_scalar:.6f}")
             
             # Create next generation
             new_population = []
@@ -117,9 +122,17 @@ class GeneticAlgorithm(ABC):
                 best = f
         return best
     
+    def get_fitness_for_stats(self, fitness):
+        # Override if fitness is a tuple
+        if isinstance(fitness, tuple):
+            return fitness[0]  # Default to use first element for stats
+        return fitness
+    
     def copy_individual(self, individual):
         if isinstance(individual, list):
             return individual.copy()
+        else:
+            return individual
     
     def plot_fitness(self, title="GA Fitness Progress"):
         plt.figure(figsize=(10, 6))
@@ -130,7 +143,7 @@ class GeneticAlgorithm(ABC):
         
         plt.xlabel('Generation')
         plt.ylabel('Fitness')
-        plt.title(f'{title}\nBest Fitness: {self.best_overall_fitness:.6f}')
+        plt.title(f'{title}\nBest Fitness: {self.get_fitness_for_stats(self.best_overall_fitness):.6f}')
         plt.legend()
         plt.grid(True, alpha=0.3)
         
