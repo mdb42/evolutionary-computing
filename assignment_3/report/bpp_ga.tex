@@ -96,15 +96,23 @@ Two-point crossover is applied with a probability of 0.9. Two cut points are cho
 
 Each gene (bin assignment) is mutated independently with probability $p_m = 1/N$, where $N$ is the number of items. When selected, a gene is reassigned to a random integer in $[0, N-1]$. This maintains valid encodings while introducing variation for local exploration.
 
-
 \section{Q4: GA Execution}
 
-\begin{itemize}
-    \item Run the GA for 50 generations with a population size of 20 considering 10, 25, 50, and 100 orders separately.
-    \item Vary the number of population size and max generation to see the effect on performance.
-    \item Plot the best and average fitness (i.e., number of bins used) per generation.
-    \item Report the best solution found and its bin-wise packing configuration.
-\end{itemize}
+\subsection{Baseline Configuration}
+
+The genetic algorithm was initially executed using the specified baseline parameters: population size of 20 and 50 generations. This configuration was tested on four problem instances containing 10, 25, 50, and 100 orders, with order weights uniformly distributed between 0 and 2 kg and a bin capacity of 10 kg.
+
+\subsection{Parameter Variation Study}
+
+To assess the impact of population size and generation count on performance, additional configurations were tested. Population sizes of 10 and 40 individuals were compared against the baseline of 20, while generation counts of 25 and 100 were compared against the baseline of 50. Each configuration was evaluated across all four problem sizes using three random seeds (42, 773, 2025).
+
+\subsection{Convergence Analysis}
+
+Plot the best and average fitness (i.e., number of bins used) per generation.
+
+\subsection{Best Solutions}
+
+Report the best solution found and its bin-wise packing configuration.
 
 \section{Q5: Analysis and Comparison}
 
