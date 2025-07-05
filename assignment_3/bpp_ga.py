@@ -17,11 +17,18 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 
-DEFAULT_POPULATION_SIZE = 20
-MAX_GENERATIONS = 50
 CROSSOVER_PROBABILITY = 0.90
 LOG_PATH = "bpp_output.log"
 IMAGES_PATH = "bpp_images"
+
+# Q4: Test different GA configurations
+GA_CONFIGS = [
+    {'pop_size': 10, 'generations': 50, 'name': 'small_pop'},
+    {'pop_size': 20, 'generations': 50, 'name': 'baseline'},
+    {'pop_size': 40, 'generations': 50, 'name': 'large_pop'},
+    {'pop_size': 20, 'generations': 25, 'name': 'short_run'},
+    {'pop_size': 20, 'generations': 100, 'name': 'long_run'},
+]
 
 BPP_CONFIGS = {
     10: {'name': '10 Orders', 'n_items': 10},
@@ -47,7 +54,7 @@ class BinPackingGA:
         self.n_items = problem.n_items
         self.chromosome_length = self.n_items  # Each gene is a bin assignment
     
-    def generate_population(self, size=DEFAULT_POPULATION_SIZE):
+    def generate_population(self, size):
         return [[random.randint(0, self.n_items - 1) for _ in range(self.n_items)] 
                 for _ in range(size)]
     
@@ -105,7 +112,7 @@ class BinPackingGA:
         else:
             return g1 < g2  # Both infeasible, prefer fewer violations
     
-    def run(self, generations=MAX_GENERATIONS, pop_size=DEFAULT_POPULATION_SIZE):
+    def run(self, generations, pop_size):
         # Initialize
         population = self.generate_population(size=pop_size)
         
@@ -168,8 +175,8 @@ class BinPackingGA:
         log(f"Feasible solutions in final generation: {feasible_count}/{pop_size}")
         return best_overall, best_overall_fitness, best_fitness_history, avg_fitness_history, feasible_count_history
 
-def create_plot(n_items, best_fit, best_hist, avg_hist, feasible_hist):
-    # Simple plot - think through this later!
+def create_plot(n_items, config_name, best_fit, best_hist, avg_hist, feasible_hist):
+    # Create plot per configuration
     best_hist = [np.nan if v == float('inf') else v for v in best_hist]
     avg_hist = [np.nan if v == float('inf') else v for v in avg_hist]
     plt.figure(figsize=(10, 6))
@@ -180,11 +187,11 @@ def create_plot(n_items, best_fit, best_hist, avg_hist, feasible_hist):
     
     plt.xlabel('Generation')
     plt.ylabel('Number of Bins')
-    plt.title(f'Bin Packing GA - {n_items} Orders\nBest: {best_fit[0]} bins (g={best_fit[1]})')
+    plt.title(f'Bin Packing GA - {n_items} Orders ({config_name})\nBest: {best_fit[0]} bins (g={best_fit[1]})')
     plt.legend()
     plt.grid(True, alpha=0.3)
     
-    filename = f"{IMAGES_PATH}/bpp_{n_items}items.png"
+    filename = f"{IMAGES_PATH}/bpp_{n_items}items_{config_name}.png"
     plt.savefig(filename, dpi=150, bbox_inches='tight')
     plt.close()
     
@@ -200,45 +207,56 @@ def main():
         os.makedirs(IMAGES_PATH)
     
     log("Q4: Bin Packing GA Results\n")
-    log(f"Population Size: {DEFAULT_POPULATION_SIZE}")
-    log(f"Generations: {MAX_GENERATIONS}")
     log(f"Crossover Probability: {CROSSOVER_PROBABILITY}")
     log("Mutation Probability: 1/n_items\n")
     
-    # Test different problem sizes
-    for n_items in [10, 25, 50, 100]:
-        log(f"\n{'='*50}")
-        log(f"{n_items} ORDERS")
-        log('='*50 + '\n')
+    # Test each configuration
+    for config in GA_CONFIGS:
+        pop_size = config['pop_size']
+        generations = config['generations']
+        config_name = config['name']
         
-        # Create problem instance
-        problem = BinPackingProblem(n_items)
-        ga = BinPackingGA(problem)
+        log(f"\n{'='*60}")
+        log(f"CONFIGURATION: {config_name}")
+        log(f"Population Size: {pop_size}, Generations: {generations}")
+        log('='*60)
         
-        # Log problem info
-        log(f"Item weights: {[f'{w:.2f}' for w in problem.weights[:10]]}{'...' if n_items > 10 else ''}")
-        log(f"Bin capacity: {problem.bin_capacity} kg")
-        
-        # Game faces, everyone! Time to evolve!
-        best_chrom, best_fit, best_hist, avg_hist, feasible_hist = ga.run()
-        
-        # Log results
-        log(f"\nBest solution found:")
-        log(f"  Bins used: {best_fit[0]}")
-        log(f"  Constraint violations: {best_fit[1]}")
-        log(f"  Feasible: {'Yes' if best_fit[1] == 0 else 'No'}")
-        
-        bins = {}
-        for idx, bin_id in enumerate(best_chrom):
-            bins.setdefault(bin_id, []).append((idx, problem.weights[idx]))
+        # Test different problem sizes
+        for n_items in [10, 25, 50, 100]:
+            log(f"\n{'-'*40}")
+            log(f"{n_items} ORDERS")
+            log('-'*40 + '\n')
+            
+            # Create problem instance
+            problem = BinPackingProblem(n_items)
+            ga = BinPackingGA(problem)
+            
+            # Log problem info
+            log(f"Item weights: {[f'{w:.2f}' for w in problem.weights[:10]]}{'...' if n_items > 10 else ''}")
+            log(f"Bin capacity: {problem.bin_capacity} kg")
+            
+            # Game faces, everyone! Time to evolve!
+            best_chrom, best_fit, best_hist, avg_hist, feasible_hist = ga.run(
+                generations=generations, pop_size=pop_size
+            )
+            
+            # Log results
+            log(f"\nBest solution found:")
+            log(f"  Bins used: {best_fit[0]}")
+            log(f"  Constraint violations: {best_fit[1]}")
+            log(f"  Feasible: {'Yes' if best_fit[1] == 0 else 'No'}")
+            
+            bins = {}
+            for idx, bin_id in enumerate(best_chrom):
+                bins.setdefault(bin_id, []).append((idx, problem.weights[idx]))
 
-        for bin_id, items in sorted(bins.items()):
-            total_weight = sum(w for _, w in items)
-            item_str = ', '.join(f'#{i}:{w:.2f}' for i, w in items)
-            log(f"  Bin {bin_id}: [{item_str}] -> {total_weight:.2f}kg")
-
-        # Create plot
-        create_plot(n_items, best_fit, best_hist, avg_hist, feasible_hist)
+            for bin_id, items in sorted(bins.items()):
+                total_weight = sum(w for _, w in items)
+                item_str = ', '.join(f'#{i}:{w:.2f}' for i, w in items)
+                log(f"  Bin {bin_id}: [{item_str}] -> {total_weight:.2f}kg")
+            
+            # Create plot
+            create_plot(n_items, config_name, best_fit, best_hist, avg_hist, feasible_hist)
     
     log(f"\nAll results saved to {LOG_PATH}")
     log(f"All plots saved to {IMAGES_PATH}/")
