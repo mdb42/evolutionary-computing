@@ -21,7 +21,8 @@ CROSSOVER_PROBABILITY = 0.90
 LOG_PATH = "bpp_output.log"
 IMAGES_PATH = "bpp_images"
 
-# Q4: Test different GA configurations
+RANDOM_SEEDS = [42, 773, 2025]
+
 GA_CONFIGS = [
     {'pop_size': 10, 'generations': 50, 'name': 'small_pop'},
     {'pop_size': 20, 'generations': 50, 'name': 'baseline'},
@@ -175,7 +176,7 @@ class BinPackingGA:
         log(f"Feasible solutions in final generation: {feasible_count}/{pop_size}")
         return best_overall, best_overall_fitness, best_fitness_history, avg_fitness_history, feasible_count_history
 
-def create_plot(n_items, config_name, best_fit, best_hist, avg_hist, feasible_hist):
+def create_plot(n_items, config_name, best_fit, best_hist, avg_hist, feasible_hist, seed=None):
     # Create plot per configuration
     best_hist = [np.nan if v == float('inf') else v for v in best_hist]
     avg_hist = [np.nan if v == float('inf') else v for v in avg_hist]
@@ -187,26 +188,38 @@ def create_plot(n_items, config_name, best_fit, best_hist, avg_hist, feasible_hi
     
     plt.xlabel('Generation')
     plt.ylabel('Number of Bins')
-    plt.title(f'Bin Packing GA - {n_items} Orders ({config_name})\nBest: {best_fit[0]} bins (g={best_fit[1]})')
+    title = f'Bin Packing GA - {n_items} Orders ({config_name})\nBest: {best_fit[0]} bins (g={best_fit[1]})'
+    if seed is not None:
+        title += f' [seed={seed}]'
+    plt.title(title)
     plt.legend()
     plt.grid(True, alpha=0.3)
     
-    filename = f"{IMAGES_PATH}/bpp_{n_items}items_{config_name}.png"
+    filename = f"{IMAGES_PATH}/bpp_{n_items}items_{config_name}"
+    if seed is not None:
+        filename += f"_seed{seed}"
+    filename += ".png"
     plt.savefig(filename, dpi=150, bbox_inches='tight')
     plt.close()
     
     log(f"Plot saved: {filename}")
 
 
-def main():
-    # Clear log
-    open(LOG_PATH, 'w').close()
+def main(seed=None):
+    # Only clear log on first run
+    if seed is None or seed == RANDOM_SEEDS[0]:
+        open(LOG_PATH, 'w').close()
     
     # Create images directory if it doesn't exist
     if not os.path.exists(IMAGES_PATH):
         os.makedirs(IMAGES_PATH)
     
-    log("Q4: Bin Packing GA Results\n")
+    if seed is not None:
+        log(f"\n{'='*60}")
+        log(f"RANDOM SEED: {seed}")
+        log('='*60)
+    
+    log("\nBin Packing GA Results")
     log(f"Crossover Probability: {CROSSOVER_PROBABILITY}")
     log("Mutation Probability: 1/n_items\n")
     
@@ -256,12 +269,13 @@ def main():
                 log(f"  Bin {bin_id}: [{item_str}] -> {total_weight:.2f}kg")
             
             # Create plot
-            create_plot(n_items, config_name, best_fit, best_hist, avg_hist, feasible_hist)
+            create_plot(n_items, config_name, best_fit, best_hist, avg_hist, feasible_hist, seed)
     
     log(f"\nAll results saved to {LOG_PATH}")
     log(f"All plots saved to {IMAGES_PATH}/")
 
 
 if __name__ == "__main__":
-    # random.seed(773) # Uncomment for reproducibility
-    main()
+    for seed in RANDOM_SEEDS:
+        random.seed(seed)
+        main(seed)
