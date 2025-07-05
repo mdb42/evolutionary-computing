@@ -1,11 +1,15 @@
 """
 CSC 742 Evolutionary Computing
-Assignment 3: Genetic Algorithms
+Assignment 3: Genetic Algorithms - Bin Packing Problem
 Author: Matthew Branson
 Date: 2025-07-05
 
 Project Description:
-Adapting for assignment 3. Not functional yet.
+SwiftShip, an e-commerce company, processes hundreds of customer orders daily.
+Each order consists of items with varying weights, and each shipping box has a
+maximum weight capacity of 10 kg and can carry multiple items (orders). Due to
+rising packaging and courier costs, SwiftShip wants to minimize the total
+number of boxes used, while ensuring that no box exceeds its weight limit...
 """
 import random
 import os
@@ -47,10 +51,23 @@ class BinPackingGA:
                 for _ in range(size)]
     
     def evaluate(self, chromosome):
-        pass
+        bin_weights = {}
+        for item_idx, bin_idx in enumerate(chromosome):
+            weight = self.problem.weights[item_idx]
+            bin_weights.setdefault(bin_idx, 0.0)
+            bin_weights[bin_idx] += weight
+        
+        f = len(bin_weights)
+        g = sum(1 for w in bin_weights.values() if w > self.problem.bin_capacity)
+        return (f, g)
     
     def tournament_selection(self, population, fitness_values):
-        pass
+        idx1, idx2 = random.sample(range(len(population)), 2)
+        
+        if self._compare_fitness(fitness_values[idx1], fitness_values[idx2]):
+            return population[idx1].copy()
+        else:
+            return population[idx2].copy()
     
     def two_point_crossover(self, parent1, parent2):
         if random.random() < CROSSOVER_PROBABILITY:
@@ -62,7 +79,6 @@ class BinPackingGA:
             
             return offspring1, offspring2
         else:
-            # No crossover - return copies of parents
             return parent1.copy(), parent2.copy()
     
     def mutation(self, chromosome):
@@ -70,10 +86,23 @@ class BinPackingGA:
         
         for i in range(self.chromosome_length):
             if random.random() < mutation_probability:
-                # TODO: Reassign to random bin
-                pass
+                chromosome[i] = random.randint(0, self.n_items - 1)
         
         return chromosome
+    
+    def _compare_fitness(self, fitness1, fitness2):
+        # Helper to avoid repeating logic in evaluation and run
+        f1, g1 = fitness1
+        f2, g2 = fitness2
+        
+        if g1 == 0 and g2 == 0:
+            return f1 < f2  # Both feasible, prefer fewer bins
+        elif g1 == 0:
+            return True  # First is feasible
+        elif g2 == 0:
+            return False  # Second is feasible
+        else:
+            return g1 < g2  # Both infeasible, prefer fewer violations
     
     def run(self, generations=MAX_GENERATIONS, pop_size=DEFAULT_POPULATION_SIZE):
         # Initialize
@@ -93,10 +122,28 @@ class BinPackingGA:
             for chrom in population:
                 fitness = self.evaluate(chrom)
                 fitness_values.append(fitness)
-                
-                # TODO: Need to compare (f, g) tuples
             
-            # TODO: Track best f, average f, number of feasible solutions
+            # Extract feasible solutions
+            feasible_fitnesses = [f for f, g in fitness_values if g == 0]
+            feasible_count = len(feasible_fitnesses)
+            feasible_count_history.append(feasible_count)
+            
+            # Track best and average fitness
+            if feasible_fitnesses:
+                best_f = min(feasible_fitnesses)
+                avg_f = sum(feasible_fitnesses) / feasible_count
+            else:
+                best_f = float('inf')
+                avg_f = float('inf')
+            
+            best_fitness_history.append(best_f)
+            avg_fitness_history.append(avg_f)
+            
+            # Update best overall
+            for i, fitness in enumerate(fitness_values):
+                if self._compare_fitness(fitness, best_overall_fitness):
+                    best_overall = population[i].copy()
+                    best_overall_fitness = fitness
             
             # Create next generation
             new_population = []
@@ -120,8 +167,24 @@ class BinPackingGA:
         return best_overall, best_overall_fitness, best_fitness_history, avg_fitness_history, feasible_count_history
 
 def create_plot(n_items, best_fit, best_hist, avg_hist, feasible_hist):
-    # TODO Update plotting for bin packing
-    pass
+    # Simple plot - think through this later!
+    plt.figure(figsize=(10, 6))
+    generations = range(len(best_hist))
+    
+    plt.plot(generations, best_hist, 'b-', label='Best Fitness', linewidth=2)
+    plt.plot(generations, avg_hist, 'r--', label='Average Fitness', linewidth=2)
+    
+    plt.xlabel('Generation')
+    plt.ylabel('Number of Bins')
+    plt.title(f'Bin Packing GA - {n_items} Orders\nBest: {best_fit[0]} bins (g={best_fit[1]})')
+    plt.legend()
+    plt.grid(True, alpha=0.3)
+    
+    filename = f"{IMAGES_PATH}/bpp_{n_items}items.png"
+    plt.savefig(filename, dpi=150, bbox_inches='tight')
+    plt.close()
+    
+    log(f"Plot saved: {filename}")
 
 
 def main():
@@ -155,7 +218,11 @@ def main():
         # Game faces, everyone! Time to evolve!
         best_chrom, best_fit, best_hist, avg_hist, feasible_hist = ga.run()
         
-        # TODO Q4: Log results and best configuration
+        # Log results
+        log(f"\nBest solution found:")
+        log(f"  Bins used: {best_fit[0]}")
+        log(f"  Constraint violations: {best_fit[1]}")
+        log(f"  Feasible: {'Yes' if best_fit[1] == 0 else 'No'}")
         
         # Create plot
         create_plot(n_items, best_fit, best_hist, avg_hist, feasible_hist)
