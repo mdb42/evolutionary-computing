@@ -118,6 +118,7 @@ class BinPackingGA:
         population = self.generate_population(size=pop_size)
         
         # Track statistics
+        first_feasible_gen = None
         best_fitness_history = []
         avg_fitness_history = []
         feasible_count_history = []
@@ -147,6 +148,9 @@ class BinPackingGA:
             
             best_fitness_history.append(best_f)
             avg_fitness_history.append(avg_f)
+            if feasible_count > 0 and first_feasible_gen is None:
+                first_feasible_gen = gen
+                log(f"First feasible solution found in generation {gen} with {feasible_count} feasible solutions.")
             
             # Update best overall
             for i, fitness in enumerate(fitness_values):
@@ -154,12 +158,16 @@ class BinPackingGA:
                     best_overall = population[i].copy()
                     best_overall_fitness = fitness
             
-            # Create next generation
+            # Create mating pool
+            mating_pool = []
+            for _ in range(pop_size):
+                winner = self.tournament_selection(population, fitness_values)
+                mating_pool.append(winner)
+
+            # Select pairs from mating pool
             new_population = []
             while len(new_population) < pop_size:
-                # Selection
-                parent1 = self.tournament_selection(population, fitness_values)
-                parent2 = self.tournament_selection(population, fitness_values)
+                parent1, parent2 = random.sample(mating_pool, 2)
                 
                 # Crossover
                 child1, child2 = self.two_point_crossover(parent1, parent2)
