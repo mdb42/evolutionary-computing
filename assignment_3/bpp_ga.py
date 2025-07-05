@@ -14,6 +14,7 @@ number of boxes used, while ensuring that no box exceeds its weight limit...
 import random
 import os
 import matplotlib.pyplot as plt
+import numpy as np
 
 
 DEFAULT_POPULATION_SIZE = 20
@@ -164,10 +165,13 @@ class BinPackingGA:
             # Ensure exact population size
             population = new_population[:pop_size]
         
+        log(f"Feasible solutions in final generation: {feasible_count}/{pop_size}")
         return best_overall, best_overall_fitness, best_fitness_history, avg_fitness_history, feasible_count_history
 
 def create_plot(n_items, best_fit, best_hist, avg_hist, feasible_hist):
     # Simple plot - think through this later!
+    best_hist = [np.nan if v == float('inf') else v for v in best_hist]
+    avg_hist = [np.nan if v == float('inf') else v for v in avg_hist]
     plt.figure(figsize=(10, 6))
     generations = range(len(best_hist))
     
@@ -224,6 +228,15 @@ def main():
         log(f"  Constraint violations: {best_fit[1]}")
         log(f"  Feasible: {'Yes' if best_fit[1] == 0 else 'No'}")
         
+        bins = {}
+        for idx, bin_id in enumerate(best_chrom):
+            bins.setdefault(bin_id, []).append((idx, problem.weights[idx]))
+
+        for bin_id, items in sorted(bins.items()):
+            total_weight = sum(w for _, w in items)
+            item_str = ', '.join(f'#{i}:{w:.2f}' for i, w in items)
+            log(f"  Bin {bin_id}: [{item_str}] -> {total_weight:.2f}kg")
+
         # Create plot
         create_plot(n_items, best_fit, best_hist, avg_hist, feasible_hist)
     
