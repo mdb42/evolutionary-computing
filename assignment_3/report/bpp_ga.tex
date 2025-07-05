@@ -104,11 +104,166 @@ The genetic algorithm was initially executed using the specified baseline parame
 
 \subsection{Parameter Variation Study}
 
-To assess the impact of population size and generation count on performance, additional configurations were tested. Population sizes of 10 and 40 individuals were compared against the baseline of 20, while generation counts of 25 and 100 were compared against the baseline of 50. Each configuration was evaluated across all four problem sizes using three random seeds (42, 773, 2025).
+To assess the impact of population size and generation count on performance, additional configurations were tested. Population sizes of 10 and 40 individuals were compared against the baseline of 20, while generation counts of 25 and 100 were compared against the baseline of 50. Additionally, each configuration was evaluated across all four problem sizes using three random seeds (42, 773, 2025) to examine performance variability.
 
-\subsection{Convergence Analysis}
+\subsection{Fitness Plots}
 
-Plot the best and average fitness (i.e., number of bins used) per generation.
+The evolution of best and average fitness values across generations is shown for various configurations.
+
+% Baseline configuration
+\begin{figure}[htbp]
+\begin{minipage}{0.48\textwidth}
+    \centering
+    \includegraphics[width=\textwidth]{bpp_10items_baseline_seed42.png}
+    \caption{Baseline: 10 orders}
+    \label{fig:baseline_10}
+\end{minipage}\hfill
+\begin{minipage}{0.48\textwidth}
+    \centering
+    \includegraphics[width=\textwidth]{bpp_25items_baseline_seed42.png}
+    \caption{Baseline: 25 orders}
+    \label{fig:baseline_25}
+\end{minipage}
+\end{figure}
+
+\begin{figure}[htbp]
+\begin{minipage}{0.48\textwidth}
+    \centering
+    \includegraphics[width=\textwidth]{bpp_50items_baseline_seed42.png}
+    \caption{Baseline: 50 orders}
+    \label{fig:baseline_50}
+\end{minipage}\hfill
+\begin{minipage}{0.48\textwidth}
+    \centering
+    \includegraphics[width=\textwidth]{bpp_100items_baseline_seed42.png}
+    \caption{Baseline: 100 orders}
+    \label{fig:baseline_100}
+\end{minipage}
+\end{figure}
+
+% Small population
+\begin{figure}[htbp]
+\begin{minipage}{0.48\textwidth}
+    \centering
+    \includegraphics[width=\textwidth]{bpp_10items_small_pop_seed42.png}
+    \caption{Small population: 10 orders}
+    \label{fig:small_pop_10}
+\end{minipage}\hfill
+\begin{minipage}{0.48\textwidth}
+    \centering
+    \includegraphics[width=\textwidth]{bpp_25items_small_pop_seed42.png}
+    \caption{Small population: 25 orders}
+    \label{fig:small_pop_25}
+\end{minipage}
+\end{figure}
+
+\begin{figure}[htbp]
+\begin{minipage}{0.48\textwidth}
+    \centering
+    \includegraphics[width=\textwidth]{bpp_50items_small_pop_seed42.png}
+    \caption{Small population: 50 orders}
+    \label{fig:small_pop_50}
+\end{minipage}\hfill
+\begin{minipage}{0.48\textwidth}
+    \centering
+    \includegraphics[width=\textwidth]{bpp_100items_small_pop_seed42.png}
+    \caption{Small population: 100 orders}
+    \label{fig:small_pop_100}
+\end{minipage}
+\end{figure}
+
+% Large population
+\begin{figure}[htbp]
+\begin{minipage}{0.48\textwidth}
+    \centering
+    \includegraphics[width=\textwidth]{bpp_10items_large_pop_seed42.png}
+    \caption{Large population: 10 orders}
+    \label{fig:large_pop_10}
+\end{minipage}\hfill
+\begin{minipage}{0.48\textwidth}
+    \centering
+    \includegraphics[width=\textwidth]{bpp_25items_large_pop_seed42.png}
+    \caption{Large population: 25 orders}
+    \label{fig:large_pop_25}
+\end{minipage}
+\end{figure}
+
+\begin{figure}[htbp]
+\begin{minipage}{0.48\textwidth}
+    \centering
+    \includegraphics[width=\textwidth]{bpp_50items_large_pop_seed42.png}
+    \caption{Large population: 50 orders}
+    \label{fig:large_pop_50}
+\end{minipage}\hfill
+\begin{minipage}{0.48\textwidth}
+    \centering
+    \includegraphics[width=\textwidth]{bpp_100items_large_pop_seed42.png}
+    \caption{Large population: 100 orders}
+    \label{fig:large_pop_100}
+\end{minipage}
+\end{figure}
+
+% Short run
+\begin{figure}[htbp]
+\begin{minipage}{0.48\textwidth}
+    \centering
+    \includegraphics[width=\textwidth]{bpp_10items_short_run_seed42.png}
+    \caption{Short run: 10 orders}
+    \label{fig:short_run_10}
+\end{minipage}\hfill
+\begin{minipage}{0.48\textwidth}
+    \centering
+    \includegraphics[width=\textwidth]{bpp_25items_short_run_seed42.png}
+    \caption{Short run: 25 orders}
+    \label{fig:short_run_25}
+\end{minipage}
+\end{figure}
+
+\begin{figure}[htbp]
+\begin{minipage}{0.48\textwidth}
+    \centering
+    \includegraphics[width=\textwidth]{bpp_50items_short_run_seed42.png}
+    \caption{Short run: 50 orders}
+    \label{fig:short_run_50}
+\end{minipage}\hfill
+\begin{minipage}{0.48\textwidth}
+    \centering
+    \includegraphics[width=\textwidth]{bpp_100items_short_run_seed42.png}
+    \caption{Short run: 100 orders}
+    \label{fig:short_run_100}
+\end{minipage}
+\end{figure}
+
+% Long run
+\begin{figure}[htbp]
+\begin{minipage}{0.48\textwidth}
+    \centering
+    \includegraphics[width=\textwidth]{bpp_10items_long_run_seed42.png}
+    \caption{Long run: 10 orders}
+    \label{fig:long_run_10}
+\end{minipage}\hfill
+\begin{minipage}{0.48\textwidth}
+    \centering
+    \includegraphics[width=\textwidth]{bpp_25items_long_run_seed42.png}
+    \caption{Long run: 25 orders}
+    \label{fig:long_run_25}
+\end{minipage}
+\end{figure}
+
+\begin{figure}[htbp]
+\begin{minipage}{0.48\textwidth}
+    \centering
+    \includegraphics[width=\textwidth]{bpp_50items_long_run_seed42.png}
+    \caption{Long run: 50 orders}
+    \label{fig:long_run_50}
+\end{minipage}\hfill
+\begin{minipage}{0.48\textwidth}
+    \centering
+    \includegraphics[width=\textwidth]{bpp_100items_long_run_seed42.png}
+    \caption{Long run: 100 orders}
+    \label{fig:long_run_100}
+\end{minipage}
+\end{figure}
 
 \subsection{Best Solutions}
 
