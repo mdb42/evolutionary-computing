@@ -5,11 +5,7 @@ Author: Matthew Branson
 Date: 2025-07-05
 
 Project Description:
-SwiftShip, an e-commerce company, processes hundreds of customer orders daily.
-Each order consists of items with varying weights, and each shipping box has a
-maximum weight capacity of 10 kg and can carry multiple items (orders). Due to
-rising packaging and courier costs, SwiftShip wants to minimize the total
-number of boxes used, while ensuring that no box exceeds its weight limit...
+Bin Packing Problem (BPP) using a Genetic Algorithm (GA) with integer encoding.
 """
 import random
 import os
@@ -39,27 +35,80 @@ BPP_CONFIGS = {
 }
 
 def log(message):
+    """Log messages to console and file.
+    
+    Args:
+        message (str): Message to log
+    """
     print(message)
     with open(LOG_PATH, 'a') as f:
         f.write(message + '\n')
 
 class BinPackingProblem:
+    """
+    Represents a bin-packing problem instance.
+
+    Attributes:
+        n_items (int): Number of items to pack.
+        bin_capacity (int): Maximum weight capacity of each bin.
+        weights (list): List of item weights.
+    """
     def __init__(self, n_items, weight_range=(0, 2), bin_capacity=10):
+        """
+        Initialize a bin-packing problem instance.
+        
+        Args:
+            n_items (int): Number of items to pack.
+            weight_range (tuple): Range of item weights (min, max).
+            bin_capacity (int): Maximum weight capacity of each bin.
+        """
         self.n_items = n_items
         self.bin_capacity = bin_capacity
         self.weights = [random.uniform(*weight_range) for _ in range(n_items)]
 
 class BinPackingGA:
+    """
+    Represents a genetic algorithm for solving the bin-packing problem.
+
+    Attributes:
+        problem (BinPackingProblem): The bin packing problem instance.
+        n_items (int): Number of items to pack.
+        chromosome_length (int): Length of the chromosome (number of items).
+    """
     def __init__(self, problem):
+        """
+        Initialize the genetic algorithm with a bin packing problem instance.
+
+        Args:
+            problem (BinPackingProblem): The bin packing problem instance.
+        """
         self.problem = problem
         self.n_items = problem.n_items
         self.chromosome_length = self.n_items  # Each gene is a bin assignment
     
     def generate_population(self, size):
+        """
+        Generate an initial population of chromosomes.
+        
+        Args:
+            size (int): Size of the population to generate.
+
+        Returns:
+            list: A list of chromosomes, each represented as a list of bin assignments.
+        """
         return [[random.randint(0, self.n_items - 1) for _ in range(self.n_items)] 
                 for _ in range(size)]
     
     def evaluate(self, chromosome):
+        """
+        Evaluate the fitness of a chromosome.
+
+        Args:
+            chromosome (list): A chromosome representing bin assignments.
+
+        Returns:
+            tuple: A tuple (f, g) where f is the number of bins used and g is the number of constraint violations.
+        """
         bin_weights = {}
         for item_idx, bin_idx in enumerate(chromosome):
             weight = self.problem.weights[item_idx]
@@ -71,6 +120,16 @@ class BinPackingGA:
         return (f, g)
     
     def tournament_selection(self, population, fitness_values):
+        """
+        Select a parent from the population using tournament selection.
+        
+        Args:
+            population (list): Current population of chromosomes.
+            fitness_values (list): Corresponding fitness values of the population.
+
+        Returns:
+            list: Selected parent chromosome.
+        """
         idx1, idx2 = random.sample(range(len(population)), 2)
         
         if self._compare_fitness(fitness_values[idx1], fitness_values[idx2]):
@@ -79,6 +138,16 @@ class BinPackingGA:
             return population[idx2].copy()
     
     def two_point_crossover(self, parent1, parent2):
+        """
+        Perform two-point crossover between two parents.
+
+        Args:
+            parent1 (list): The first parent chromosome.
+            parent2 (list): The second parent chromosome.
+
+        Returns:
+            tuple: Two offspring chromosomes resulting from the crossover.
+        """
         if random.random() < CROSSOVER_PROBABILITY:
             point1 = random.randint(1, self.chromosome_length - 2)
             point2 = random.randint(point1 + 1, self.chromosome_length - 1)
@@ -91,6 +160,15 @@ class BinPackingGA:
             return parent1.copy(), parent2.copy()
     
     def mutation(self, chromosome):
+        """
+        Perform mutation on a chromosome.
+
+        Args:
+            chromosome (list): The chromosome to mutate.
+
+        Returns:
+            list: The mutated chromosome.
+        """
         mutation_probability = 1.0 / self.n_items
         
         for i in range(self.chromosome_length):
@@ -100,7 +178,16 @@ class BinPackingGA:
         return chromosome
     
     def _compare_fitness(self, fitness1, fitness2):
-        # Helper to avoid repeating logic in evaluation and run
+        """
+        Compare two fitness values to determine which is better.
+        
+        Args:
+            fitness1 (tuple): Fitness of the first chromosome (f, g).
+            fitness2 (tuple): Fitness of the second chromosome (f, g).
+
+        Returns:
+            bool: True if fitness1 is better than fitness2, False otherwise.
+        """
         f1, g1 = fitness1
         f2, g2 = fitness2
         
@@ -114,6 +201,16 @@ class BinPackingGA:
             return g1 < g2  # Both infeasible, prefer fewer violations
     
     def run(self, generations, pop_size):
+        """
+        Run the genetic algorithm for a specified number of generations.
+
+        Args:
+            generations (int): Number of generations to run.
+            pop_size (int): Size of the population.
+
+        Returns:
+            tuple: Best chromosome found, its fitness, and statistics.
+        """
         # Initialize
         population = self.generate_population(size=pop_size)
         
@@ -185,6 +282,18 @@ class BinPackingGA:
         return best_overall, best_overall_fitness, best_fitness_history, avg_fitness_history, feasible_count_history
 
 def create_plot(n_items, config_name, best_fit, best_hist, avg_hist, feasible_hist, seed=None):
+    """
+    Create and save a plot for the bin packing GA results.
+
+    Args:
+        n_items (int): Number of items being packed.
+        config_name (str): Name of the GA configuration.
+        best_fit (tuple): Best fitness found (f, g).
+        best_hist (list): History of best fitness values.
+        avg_hist (list): History of average fitness values.
+        feasible_hist (list): History of feasible solution counts.
+        seed (int, optional): Random seed used for the experiment.
+    """
     # Create plot per configuration
     best_hist = [np.nan if v == float('inf') else v for v in best_hist]
     avg_hist = [np.nan if v == float('inf') else v for v in avg_hist]
@@ -214,6 +323,9 @@ def create_plot(n_items, config_name, best_fit, best_hist, avg_hist, feasible_hi
 
 
 def main(seed=None):
+    """
+    Main function to run the bin packing GA with specified configurations.
+    """
     # Only clear log on first run
     if seed is None or seed == RANDOM_SEEDS[0]:
         open(LOG_PATH, 'w').close()
