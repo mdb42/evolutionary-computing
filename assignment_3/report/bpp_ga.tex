@@ -476,11 +476,23 @@ The following tables detail the bin-wise packing configurations for the baseline
 
 \subsection{Convergence Analysis}
 
-Compare the convergence behavior of different runs (e.g., different random seeds or order sizes).
+Performance varied significantly across configurations and problem sizes. Testing with seed 42 revealed clear patterns.
 
-\subsection{Performance Comparison}
+For the smallest problem (10 orders), multiple configurations found 2-bin solutions, including the small population (10 individuals) and long run (100 generations). Small problems proved easy to solve regardless of parameter settings.
 
-Discuss whether the algorithm tends to find feasible solutions early or late in the process.
+Population size mattered more for larger problems. With 100 orders, the small population (10 individuals) needed 43 bins versus the baseline's 42, while the large population (40 individuals) achieved 37 bins - a significant improvement. More diversity helped on complex problems.
+
+Generation count showed similar effects. Short runs (25 generations) performed poorly, especially on large problems—using 52 bins for 100 orders compared to 42 for the baseline. Long runs (100 generations) performed best overall, achieving 17 bins for 50 orders and 37 bins for 100 orders.
+
+Both population size and generation count improved solution quality, with larger problems benefiting most from increased resources in either dimension.
+
+\subsection{Feasible Solution Analysis}
+
+All configurations found feasible solutions (g=0) from generation 0 across all problem instances. This was expected given the problem parameters: with items weighing 0-2 kg and bins holding 10 kg, random initialization rarely produces overloaded bins.
+
+Since each of N items can be assigned to any of N bins, items tend to spread out during random initialization. Even when multiple items land in the same bin, reaching the 10 kg limit requires at least 5 items, which is unlikely when items distribute randomly across many bins.
+
+As a result, the genetic algorithm focused entirely on minimizing the number of bins used rather than finding feasible solutions. The constraint handling mechanisms in the tournament selection were implemented but never needed, as no infeasible solutions appeared during evolution. This shows that for bin packing with generous capacity relative to item size, the challenge is optimization, not constraint satisfaction.
 
 \section{Conclusion}
 This study successfully implemented...
