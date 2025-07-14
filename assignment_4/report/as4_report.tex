@@ -1,0 +1,129 @@
+\documentclass[journal,12pt,onecolumn]{IEEEtran}
+\usepackage{mathtools,amssymb,amsfonts}
+\usepackage{algorithmic}
+\usepackage{algorithm}
+\usepackage{graphicx}
+\usepackage{xcolor}
+\usepackage{float}
+\usepackage{setspace}
+\usepackage{subcaption}
+\usepackage[hidelinks]{hyperref}
+\usepackage{multirow}
+
+\doublespacing
+
+\hypersetup{
+   colorlinks=true,
+   linkcolor=blue,
+   citecolor=black,
+   urlcolor=blue
+}
+
+\usepackage{titlesec}
+\titlespacing*{\section}{0pt}{12pt plus 4pt minus 2pt}{12pt plus 2pt minus 2pt}
+\titlespacing*{\subsection}{0pt}{12pt plus 4pt minus 2pt}{8pt plus 2pt minus 2pt}
+\titlespacing*{\subsubsection}{0pt}{12pt plus 4pt minus 2pt}{6pt plus 2pt minus 2pt}
+
+\title{Evolutionary Computing: Comprehensive Review}
+\author{
+   \IEEEauthorblockN{Matthew D. Branson} \\
+   \IEEEauthorblockA{\textit{Department of Computer Science} \\
+   \textit{Missouri State University}\\
+   Springfield, MO \\
+   branson773@live.missouristate.edu
+   }
+}
+
+\date{July 14, 2025}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+This paper presents a comprehensive review of key topics in evolutionary computing, including genetic algorithms, multi-objective optimization, genetic programming, neuroevolution, and co-evolution.
+\end{abstract}
+
+\begin{IEEEkeywords}
+Genetic algorithms, multi-objective optimization, genetic programming, neuroevolution, NEAT, co-evolution
+\end{IEEEkeywords}
+
+% Section A
+\section{Genetic Algorithms}
+
+\subsection{Selection Pressure}
+
+Explain the role of selection pressure in Genetic Algorithms. \\
+- What are the consequences of too high or too low selection pressure? \\
+- Compare roulette wheel selection and tournament selection in this context.
+
+\subsection{Premature Convergence}
+
+Consider a binary-encoded GA solving a minimization problem. \\
+- Why might premature convergence occur? \\
+- Suggest at least two strategies to mitigate it.
+
+% Section B
+\section{Multi-Objective Optimization}
+
+
+\subsection{Pareto Dominance and Pareto Optimality}
+
+Differentiate between Pareto dominance and Pareto optimality. Illustrate your answer with a two objective optimization example.
+
+\subsection{Diversity Preservation}
+
+Explain the role of diversity preservation mechanisms in MOO.
+
+\subsection{Limitations}
+
+Why can't we scalarize all multi-objective problems into a single objective? Discuss limitations of the weighted sum approach with an example.
+
+
+% Section C
+\section{Genetic Programming}
+
+\subsection{Comparing Genetic Programming and Genetic Algorithms}
+
+Compare Genetic Programming with Genetic Algorithms. \\
+- Focus on representation, operators, and typical application domains.
+
+\subsection{Closure and Sufficiency}
+
+Explain how closure and sufficiency properties affect GP design. Give an example of a function and terminal set that satisfies both.
+
+% Section D
+\section{Neuroevolution}
+
+\subsection{NeuroEvolution of Augmenting Topologies}
+
+What are the key innovations introduced in NEAT? Explain historical markings, speciation, and complexification.
+
+\subsection{Comparison with Fixed Topology Neuroevolution}
+
+Discuss how NEAT differs from traditional fixed-topology neuroevolution. What advantages does evolving topology offer in dynamic environments?
+
+\subsection{Speciation}
+
+In NEAT, why is speciation important for protecting innovation? How is it implemented, and what are the risks if not used?
+
+
+% Section E
+\section{Co-Evolution}
+
+\subsection{Cooperative vs. Competitive Co-Evolution}
+Differentiate between cooperative and competitive co-evolution. Provide an example problem suited for each type.
+
+\subsection{The Red Queen Effect}
+Explain the concept of the Red Queen effect in co-evolutionary systems. How can it affect convergence in competitive settings?
+
+\subsection{Challenges in Co-Evolution}
+What challenges arise in fitness evaluation in co-evolutionary algorithms? Discuss with respect to relative vs. absolute fitness
+
+
+
+\section{Conclusion}
+
+This paper has provided a comprehensive overview of key concepts in evolutionary computing, including genetic algorithms, multi-objective optimization, genetic programming, neuroevolution, and co-evolution.
+
+\end{document}
